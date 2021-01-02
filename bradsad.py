@@ -1,5 +1,10 @@
-import time, discord
+import time, discord, requests
 
+path = "https://api.schoology.com/v1"
+key = "6c457bdf6661e60b42292540a754394e05faf105c"
+secret = "7595214e6c1a35452960e2fbfe0bafe9"
+schoololooooogy = requests.get("https://api.schoology.com/v1", auth=(secret, key))
+print(schoololooooogy)
 messageName = 0
 class MyClient(discord.Client):
     async def on_ready(self):
