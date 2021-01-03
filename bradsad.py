@@ -22,7 +22,7 @@ class MyClient(discord.Client):
         if (message.content == "+Remind"):
             print(message.author,":", message.content)
             assignmentDict = sortAssignments(schoology(key,secret))
-            valueList = list(assignmentDict.values())
+            #valueList = list(assignmentDict.values())
             try:
                 cdate = getCurrentDate()
                 temp = assignmentDict["2020-08-31"]
@@ -44,6 +44,18 @@ def getCurrentDate():
     print("The current date is:", currentDate)
     print("Sad Brad")
     return currentDate
+
+def convertTime(milTime):
+    temptime = milTime[1].split(':')
+    temptime[0] = int(temptime[0]) 
+    if (temptime[0] > 12):
+            #if statement changes the time from military to standard so it is elligble
+        temptime[0] -= 12
+        temptime[2] = "PM"
+    else:
+        temptime[2] = "AM"
+    standardTime = str(temptime[0]) + ':' + temptime[1] + ' '+ temptime[2]
+    return standardTime
 
 class schoology:
     def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
@@ -81,10 +93,6 @@ class schoology:
         except JSONDecodeError:
             return{}
 
-pst = pytz.timezone('America/Los_Angeles')
-dateAndTime = str(datetime.now(pst)).split()
-currentDate = dateAndTime[0]
-print("The current date is:", currentDate)
 def sortAssignments(school):
     sc = school
     starter = 0
@@ -96,15 +104,7 @@ def sortAssignments(school):
     for i in scgetassignments:
         #loops through all assignments and assigns the tite and date to a dictionary where the keys are the dates and the values are the titles
         assignmentDueDateandTime = i['due'].split()
-        temptime = assignmentDueDateandTime[1].split(':')
-        temptime[0] = int(temptime[0]) 
-        if (temptime[0] > 12):
-            #if statement changes the time from military to standard so it is elligble
-            temptime[0] -= 12
-            temptime[2] = "PM"
-        else:
-            temptime[2] = "AM"
-        assignmentDueDateandTime[1] = str(temptime[0]) + ':' + temptime[1] + ' '+ temptime[2]
+        assignmentDueDateandTime[1] = convertTime(assignmentDueDateandTime)
         tempDict[assignmentDueDateandTime[0]] = [i['title'], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
         assignmentCounter += 1
         if(assignmentCounter == 20):
