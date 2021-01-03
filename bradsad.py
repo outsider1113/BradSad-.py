@@ -14,27 +14,37 @@ path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
 
-"""
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_message(self, message):
-        print(message.author,":", message.content)
-        print(message.author.id)
-        if (message.author.id == 343403664175792128):
-            await message.channel.send("{0.author.mention} stop being sad, brad".format(message))
+        if (message.content == "+Remind"):
+            print(message.author,":", message.content)
+            assignmentDict = sortAssignments(schoology(key,secret))
+            valueList = list(assignmentDict.values())
+            try:
+                cdate = getCurrentDate()
+                temp = assignmentDict["2020-08-31"]
+                await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
+            except KeyError:
+                await message.channel.send("There are no assignments due today")    
 
-client = MyClient()
-client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
+def sendEmbed(disc, title, desc, date, typeof, points, time):
+    embedVar = disc.Embed(title= title, description= desc, color=0x00ff00)
+    embedVar.add_field(name="Assignment Type", value=typeof, inline=False)
+    embedVar.add_field(name="Points Worth", value= points, inline=False)    
+    embedVar.add_field(name="Time Due", value= time, inline=False)
+    return embedVar
 
-print("Sad Brad")
-sadbrad = True 
-if (sadbrad):
-    print("brad is sad")
-else:
-    print("brad is glad")
-"""
+def getCurrentDate():
+    pst = pytz.timezone('America/Los_Angeles')
+    dateAndTime = str(datetime.now(pst)).split()
+    currentDate = dateAndTime[0]
+    print("The current date is:", currentDate)
+    print("Sad Brad")
+    return currentDate
+
 class schoology:
     def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
                     request_token=None, request_token_secret=None, access_token=None, access_token_secret=None):
@@ -71,32 +81,10 @@ class schoology:
         except JSONDecodeError:
             return{}
 
-#sc = schoology(key,secret)
-
-#scgetcourses = sc.getcourses(starter, limiter)
-#scgetassignments = scgetcourses['assignment']
-
-#assignmentDue = {}
-#print(scgetcourses['total'])
-#print(scgetuserinfo['name_display'])
-
 pst = pytz.timezone('America/Los_Angeles')
 dateAndTime = str(datetime.now(pst)).split()
 currentDate = dateAndTime[0]
 print("The current date is:", currentDate)
-
-
-
-
-#print(assignmentTitles)
-#print(assignmentDue)
-"""
-try:
-    banana = assignmentDue['2020-08-24']
-    print(banana[3])
-except KeyError:
-    print("There are no assignments due today")
-""" 
 def sortAssignments(school):
     sc = school
     starter = 0
@@ -108,7 +96,16 @@ def sortAssignments(school):
     for i in scgetassignments:
         #loops through all assignments and assigns the tite and date to a dictionary where the keys are the dates and the values are the titles
         assignmentDueDateandTime = i['due'].split()
-        tempDict[assignmentDueDateandTime[0]] = [i['title'], i['max_points'],i['description'],i['type']]
+        temptime = assignmentDueDateandTime[1].split(':')
+        temptime[0] = int(temptime[0]) 
+        if (temptime[0] > 12):
+            #if statement changes the time from military to standard so it is elligble
+            temptime[0] -= 12
+            temptime[2] = "PM"
+        else:
+            temptime[2] = "AM"
+        assignmentDueDateandTime[1] = str(temptime[0]) + ':' + temptime[1] + ' '+ temptime[2]
+        tempDict[assignmentDueDateandTime[0]] = [i['title'], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
         assignmentCounter += 1
         if(assignmentCounter == 20):
             #resets the limit and calls the getcourses module again to get all assignments
@@ -120,15 +117,16 @@ def sortAssignments(school):
                 #gets the next set of assignments 
                 scgetassignments.append(x)
     return tempDict
-
-temp = sortAssignments(schoology(key,secret))
-valueList = list(temp.values())
-print(valueList[0])
-#print(temp)
+"""
+assignmentDict = sortAssignments(schoology(key,secret))
+valueList = list(assignmentDict.values())
+print(assignmentDict)
 
 try:
-    banana = temp[]
+    banana = assignmentDict[currentDate]
     print(banana)
 except KeyError:
     print("There are no assignments due today")
-
+"""
+client = MyClient()
+client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
