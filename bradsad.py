@@ -19,37 +19,56 @@ class MyClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_message(self, message):
-        if (message.content == "+Remind"):
+        if (message.content == "+"):
             print(message.author,":", message.content)
             assignmentDict = sortAssignments(schoology(key,secret))
             #valueList = list(assignmentDict.values())
             try:
-                cdate = getCurrentDate()
+                cdate = getCurrentDate(True)
                 temp = assignmentDict["2020-08-31"]
                 await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
             except KeyError:
                 await message.channel.send("There are no assignments due today")    
 
 def sendEmbed(disc, title, desc, date, typeof, points, time):
-    embedVar = disc.Embed(title= title, description= desc, color=0x00ff00)
+    #Creates embed and returns it 
+    embedVar = disc.Embed(title= title, description= desc, color=0x42f5f5)
     embedVar.add_field(name="Assignment Type", value=typeof, inline=False)
     embedVar.add_field(name="Points Worth", value= points, inline=False)    
     embedVar.add_field(name="Time Due", value= time, inline=False)
     return embedVar
 
-def getCurrentDate():
+def getCurrentDate(tomorrow):
+    #gets the current date
     pst = pytz.timezone('America/Los_Angeles')
-    dateAndTime = str(datetime.now(pst)).split()
+    tempDate = datetime.now(pst)
+    tempLeapyear = tempDate.year % 4
+    if tomorrow:
+        if (tempDate.day == 31 and (tempDate.month == 1 or tempDate.month == 3 or tempDate.month == 5 or tempDate.month == 7 or tempDate.month == 8 or tempDate.month == 10 or tempDate.month == 12)):
+            tempDate = tempDate.replace(month = tempDate.month + 1)
+            tempDate = tempDate.replace(day = 1)
+        elif (tempDate.day == 30 and (tempDate.month == 4 or tempDate.month == 6 or tempDate.month == 9 or tempDate.month == 11)):
+            tempDate = tempDate.replace(month = tempDate.month + 1)
+            tempDate = tempDate.replace(day = 1)
+        elif (tempDate.day == 28 and tempDate.month == 2 and tempLeapyear != 0):
+            tempDate = tempDate.replace(month = tempDate.month + 1)
+            tempDate = tempDate.replace(day = 1)
+        elif (tempDate.day == 29 and tempDate.month == 2 and tempLeapyear == 0):
+            tempDate = tempDate.replace(month = tempDate.month + 1)
+            tempDate = tempDate.replace(day = 1)
+        else: 
+            tempDate = tempDate.replace(day = tempDate.day + 1)
+    dateAndTime = str(tempDate).split()
     currentDate = dateAndTime[0]
     print("The current date is:", currentDate)
     print("Sad Brad")
     return currentDate
 
 def convertTime(milTime):
+    #function that changes the time from military to standard so it is legible
     temptime = milTime[1].split(':')
     temptime[0] = int(temptime[0]) 
     if (temptime[0] > 12):
-            #if statement changes the time from military to standard so it is elligble
         temptime[0] -= 12
         temptime[2] = "PM"
     else:
