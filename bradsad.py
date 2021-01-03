@@ -64,8 +64,8 @@ class schoology:
 
     def getcourses(self, start, limit):
         try:
-            courses = self.oauth.get("https://api.schoology.com/v1/sections/2535704616/assignments")
-            #?start=" + start + '&limit=' + limit
+            getlink = "https://api.schoology.com/v1/sections/2535704616/assignments"+"?start="+str(starter)+"&limit="+str(limiter)
+            courses = self.oauth.get(getlink)
             return courses.json()
         except JSONDecodeError:
             return{}
@@ -82,6 +82,11 @@ for i in scgetassignments:
     assignmentCounter += 1
     if(assignmentCounter == 20):
         assignmentCounter = 0
-        
+        starter += 21
+        limiter += 21
+        scgetcourses = sc.getcourses(starter, limiter)
+        for x in scgetcourses['assignment']:
+            scgetassignments.append(x)
+
 print(assignmentTitles)
-print(scgetassignments[2])
+#print(scgetassignments)
