@@ -12,9 +12,11 @@ path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
 #schoololooooogy = requests.get("https://api.schoology.com/v1")
-
 #print(schoololooooogy)
-
+starter = 0
+limiter = 20
+assignmentCounter = int(0)
+"""
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -34,7 +36,7 @@ if (sadbrad):
     print("brad is sad")
 else:
     print("brad is glad")
-
+"""
 class schoology:
     def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
                     request_token=None, request_token_secret=None, access_token=None, access_token_secret=None):
@@ -55,11 +57,31 @@ class schoology:
 
     def getuserinfo(self):
         try:
-            urmom = self.oauth.get("https://api.schoology.com/v1/users/55633162")
-            return urmom.json()
+            user = self.oauth.get("https://api.schoology.com/v1/users/55633162")
+            return user.json()
+        except JSONDecodeError:
+            return{}
+
+    def getcourses(self, start, limit):
+        try:
+            courses = self.oauth.get("https://api.schoology.com/v1/sections/2535704616/assignments")
+            #?start=" + start + '&limit=' + limit
+            return courses.json()
         except JSONDecodeError:
             return{}
 
 sc = schoology(key,secret)
 scgetuserinfo = sc.getuserinfo()
+scgetcourses = sc.getcourses(starter, limiter)
+scgetassignments = scgetcourses['assignment']
+assignmentTitles = []
+print(scgetcourses['total'])
 print(scgetuserinfo['name_display'])
+for i in scgetassignments:
+    assignmentTitles.append(i['title'])
+    assignmentCounter += 1
+    if(assignmentCounter == 20):
+        assignmentCounter = 0
+        
+print(assignmentTitles)
+print(scgetassignments[2])
