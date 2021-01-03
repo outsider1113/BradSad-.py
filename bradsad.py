@@ -1,5 +1,12 @@
 import time, discord, requests
 import oauth2 as oauth, urllib
+import requests_oauthlib
+import json
+
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 
 path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
@@ -28,20 +35,31 @@ if (sadbrad):
 else:
     print("brad is glad")
 
+class schoology:
+    def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
+                    request_token=None, request_token_secret=None, access_token=None, access_token_secret=None):
+            self.API_ROOT = 'https://api.schoology.com/v1'
+            self.DOMAIN_ROOT = domain
 
-def oauth_req(url, key, secret, http_method="POST", post_body=None, http_headers=None):
-    CONSUMER_KEY = key
-    CONSUMER_SECRET = secret
-    consumer = oauth.Consumer(key=CONSUMER_KEY, secret=CONSUMER_SECRET)
-    token = oauth.Token(key=key, secret=secret)
-    client = oauth.Client(consumer, token)
-    content = client.request(
-        url,
-        method=http_method,
-        body= urllib.urlencode({'status': post_body}),
-        headers=http_headers,
-        force_auth_header=True,
-    )
-    return content
+            self.consumer_key = consumer_key
+            self.consumer_secret = consumer_secret
 
-print(oauth_req(path, key, secret))
+            self.request_token = request_token
+            self.request_token_secret = request_token_secret
+
+            self.access_token = access_token
+            self.access_token_secret = access_token_secret
+
+            self.oauth = requests_oauthlib.OAuth1Session(self.consumer_key, self.consumer_secret)
+            self.three_legged = three_legged
+
+    def getinfo(self):
+        try:
+            urmom = self.oauth.get("https://api.schoology.com/v1/users/55633162")
+            return urmom.json()
+        except JSONDecodeError:
+            return{}
+            
+sc = schoology(key,secret)
+scgetinfo = sc.getinfo()
+print(scgetinfo['name_display'])
