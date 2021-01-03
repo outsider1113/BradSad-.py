@@ -53,13 +53,13 @@ class schoology:
             self.oauth = requests_oauthlib.OAuth1Session(self.consumer_key, self.consumer_secret)
             self.three_legged = three_legged
 
-    def getinfo(self):
+    def getuserinfo(self):
         try:
             urmom = self.oauth.get("https://api.schoology.com/v1/users/55633162")
             return urmom.json()
         except JSONDecodeError:
             return{}
-            
+
 sc = schoology(key,secret)
-scgetinfo = sc.getinfo()
-print(scgetinfo['name_display'])
+scgetuserinfo = sc.getuserinfo()
+print(scgetuserinfo['name_display'])
