@@ -53,7 +53,7 @@ class MyClient(discord.Client):
                     await message.author.send("Hello\nPlease Enter key and Secret\n\nEnter Key Below: ")
                 elif((message.content == "+today" or message.content == "+nextday") and not keyentered and not secretentered):
                     await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
-            elif(message.guild == None):
+            elif(message.guild == None and (not keyentered and not secretentered)): #I NEED IT TO NOT READ MESSAGES UNLESS INIT COMMMAND HAS BEEN CALLED
                 if(not keyentered):
                     tempuserkey = message.content #store  
                     keyentered = True
@@ -64,8 +64,13 @@ class MyClient(discord.Client):
                     await message.author.send("Secret Recieved\nChecking if correct Momentarily")
                     try:
                         tempschool = schoology(tempuserkey,tempusersecret)
-                        print(tempschool)
-                        await message.author.send("Succesful you can now use the commands in your server")
+                        tempuser = tempschool.getusercode()
+                        if(tempuser == None):
+                            secretentered = False
+                            keyentered = False
+                            await message.author.send("Invalid Secret or Key\nPlease initalize once again(Keys and Secrets must be Exact do not leave empty space)")
+                        else:
+                            await message.author.send("Succesful you can now use the commands in your server")
                     except:
                         secretentered = False
                         keyentered = False

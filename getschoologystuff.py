@@ -9,6 +9,7 @@ try:
 except ImportError:
     JSONDecodeError = ValueError
 class schoology:
+
     def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
                     request_token=None, request_token_secret=None, access_token=None, access_token_secret=None):
             #establishes the root and domain which we already know 
@@ -29,15 +30,20 @@ class schoology:
             self.oauth = requests_oauthlib.OAuth1Session(self.consumer_key, self.consumer_secret)
             self.three_legged = three_legged
 
+    def getusercode(self):
+        try:
+            user = self.oauth.get("https://api.schoology.com/v1/users/me")
+            return user.json()
+        except JSONDecodeError:
+            return None
+
     def getusercourses(self,usercode):
         try:
-            user = self.oauth.get("https://api.schoology.com/v1/users/" + usercode + "/sections")
-            return user.json()
+            classes = self.oauth.get("https://api.schoology.com/v1/users/" + usercode + "/sections")
+            return classes.json()
         except JSONDecodeError:
             return{}
             
-    def getusercode(self):
-        print(" ")
 
     def getassignments(self, start, limit, classcode):
         try:
