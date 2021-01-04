@@ -6,10 +6,14 @@ import pytz
 from datetime import datetime
 from getschoologystuff import schoology as schoology
 
+
+#else:
+#   await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
 path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
 userscode = "55633162"
+classcode = "2535704616"
 userChannels = {}
 userGuild = ""
 keyentered = False
@@ -24,39 +28,48 @@ class MyClient(discord.Client):
         global keyentered, secretentered, tempuserkey, tempusersecret
         if(message.author.id != self.user.id):
             if(message.guild != None):
-                if(keyentered !=False and secretentered != False):
-                    if (message.content == "+today"):
-                        print(message.author,":", message.content)
-                        assignmentDict = sortAssignments(schoology(tempuserkey, tempusersecret))
-                        #valueList = list(assignmentDict.values())
-                        try:
-                            cdate = getCurrentDate(False)
-                            temp = assignmentDict[cdate]
-                            await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
-                        except KeyError:
-                            await message.channel.send(message.author.mention + " There are no assignments due today")
-                    elif (message.content == "+nextday"):
-                        print(message.author,":", message.content)
-                        assignmentDict = sortAssignments(schoology(key,secret))
-                        try:
-                            nextDate = getCurrentDate(True)
-                            temp = assignmentDict[nextDate] #replace brackets with nextDate
-                            await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1]))
-                        except KeyError:
-                            await message.channel.send(message.author.mention +  " There are no assignments due Tomorrow")
-                    else:
-                        await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
-                elif(message.content == "+init"):
+                if(message.content == "+today" and keyentered and secretentered):
+                    print(message.author,":", message.content)
+                    assignmentDict = sortAssignments(schoology(key, secret), classcode)#replace with tempuser key/secret
+                    #valueList = list(assignmentDict.values())
+                    try:
+                        cdate = getCurrentDate(False)
+                        temp = assignmentDict[cdate]
+                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
+                    except KeyError:
+                        await message.channel.send(message.author.mention + " There are no assignments due today")
+                elif (message.content == "+nextday" and keyentered and secretentered):
+                    print(message.author,":", message.content)
+                    assignmentDict = sortAssignments(schoology(key,secret), classcode)
+                    try:
+                        nextDate = getCurrentDate(True)
+                        temp = assignmentDict[nextDate] #replace brackets with nextDate
+                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1]))
+                    except KeyError:
+                        await message.channel.send(message.author.mention +  " There are no assignments due Tomorrow")
+                elif (message.content == "+init"):
                     userGuild = message.guild
                     print(userGuild)
                     await message.author.send("Hello\nPlease Enter key and Secret\n\nEnter Key Below: ")
+                elif((message.content == "+today" or message.content == "+nextday") and not keyentered and not secretentered):
+                    await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
             elif(message.guild == None):
                 if(not keyentered):
-                    tempuserkey = message.content 
+                    tempuserkey = message.content #store  
                     keyentered = True
+                    await message.author.send("Key Recieved!\nPlease enter secret: ")
                 elif(not secretentered):
-                    tempusersecret = message.content
+                    tempusersecret = message.content #store in a limited dict 
                     secretentered = True
+                    await message.author.send("Secret Recieved\nChecking if correct Momentarily")
+                    try:
+                        tempschool = schoology(tempuserkey,tempusersecret)
+                        print(tempschool)
+                        await message.author.send("Succesful you can now use the commands in your server")
+                    except:
+                        secretentered = False
+                        keyentered = False
+                        await message.author.send("Invalid Secret or Key\nPlease initalize once again(Keys and Secrets must be Exact do not leave empty space)")
 
 
 def sendEmbed(disc, title, desc, date, typeof, points, time):
@@ -106,15 +119,15 @@ def convertTime(milTime):
     return standardTime
 
 sc = schoology(key,secret)
-scgetallcourses = sc.getuserinfo(userscode)
-print(scgetallcourses)
+scgetallcourses = sc.getusercourses(userscode)
+#print(scgetallcourses)
 
-def sortAssignments(school):
+def sortAssignments(school, classcode):
     sc = school
     starter = 0
     limiter = 20
     assignmentCounter = 0
-    scgetcourses = sc.getcourses(starter, limiter)
+    scgetcourses = sc.getassignments(starter, limiter, classcode)
     scgetassignments = scgetcourses['assignment']
     tempDict = {}
     for i in scgetassignments:
@@ -124,15 +137,25 @@ def sortAssignments(school):
         tempDict[assignmentDueDateandTime[0]] = [i['title'], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
         assignmentCounter += 1
         if(assignmentCounter == 20):
-            #resets the limit and calls the getcourses module again to get all assignments
+            #resets the limit and calls the getassignments module again to get all assignments
             assignmentCounter = 0
             starter += 20
             limiter += 20
-            scgetcourses = sc.getcourses(starter, limiter)
+            scgetcourses = sc.getassignments(starter, limiter, classcode)
             for x in scgetcourses['assignment']:
                 #gets the next set of assignments 
                 scgetassignments.append(x)
     return tempDict
+
+def sortClasses(school):
+    sc = school 
+    scgetuserinfo = sc.getusercourses(userscode)
+    scgetallcourses = scgetuserinfo['section']
+    tempDict = {}
+    for i in scgetallcourses:
+        tempDict[i['course_title']] = i['id']
+    return tempDict
+    
 """
 assignmentDict = sortAssignments(schoology(key,secret))
 valueList = list(assignmentDict.values())
@@ -144,5 +167,7 @@ try:
 except KeyError:
     print("There are no assignments due today")
 """
+classesDict = sortClasses(schoology(key, secret))
+print(classesDict)
 client = MyClient()
 client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")

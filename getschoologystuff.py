@@ -29,16 +29,19 @@ class schoology:
             self.oauth = requests_oauthlib.OAuth1Session(self.consumer_key, self.consumer_secret)
             self.three_legged = three_legged
 
-    def getuserinfo(self,usercode):
+    def getusercourses(self,usercode):
         try:
             user = self.oauth.get("https://api.schoology.com/v1/users/" + usercode + "/sections")
             return user.json()
         except JSONDecodeError:
             return{}
+            
+    def getusercode(self):
+        print(" ")
 
-    def getcourses(self, start, limit):
+    def getassignments(self, start, limit, classcode):
         try:
-            getlink = "https://api.schoology.com/v1/sections/2535704616/assignments"+"?start="+str(start)+"&limit="+str(limit)
+            getlink = "https://api.schoology.com/v1/sections/" + classcode + "/assignments"+"?start="+str(start)+"&limit="+str(limit)
             courses = self.oauth.get(getlink)
             return courses.json()
         except JSONDecodeError:
