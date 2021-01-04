@@ -25,7 +25,7 @@ class MyClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_message(self, message):
-        global keyentered, secretentered, tempuserkey, tempusersecret
+        global keyentered, secretentered, tempuserkey, tempusersecret, tempusercode
         if(message.author.id != self.user.id):
             if(message.guild != None):
                 if(message.content == "+today" and keyentered and secretentered):
@@ -35,7 +35,7 @@ class MyClient(discord.Client):
                     try:
                         cdate = getCurrentDate(False)
                         temp = assignmentDict[cdate]
-                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
+                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                     except KeyError:
                         await message.channel.send(message.author.mention + " There are no assignments due today")
                 elif (message.content == "+nextday" and keyentered and secretentered):
@@ -44,15 +44,22 @@ class MyClient(discord.Client):
                     try:
                         nextDate = getCurrentDate(True)
                         temp = assignmentDict[nextDate] #replace brackets with nextDate
-                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1]))
+                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                     except KeyError:
                         await message.channel.send(message.author.mention +  " There are no assignments due Tomorrow")
                 elif (message.content == "+init"):
                     userGuild = message.guild
                     print(userGuild)
                     await message.author.send("Hello\nPlease Enter key and Secret\n\nEnter Key Below: ")
-                elif((message.content == "+today" or message.content == "+nextday") and not keyentered and not secretentered):
+                elif ((message.content == "+today" or message.content == "+nextday") and not keyentered and not secretentered):
                     await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
+                elif (message.content == "+classes"):
+                    #gets all classes from user, it will need the usercode (new or not), so you can move this elif around to where the user has already intialized
+                    classesDict = sortClasses(schoology(key, secret), tempusercode)
+                    classesList = classesDict.keys()
+                    await message.channel.send(embed = sendClassEmbed(discord, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5])) 
+                    #after the embed message the user should choose a number which corresponds to the course, which will be linked to a classcode.
+                    #then the function sortChosenClass will be called which will take their input and return the class code (make sure to int() their input)
             elif(message.guild == None and (not keyentered and not secretentered)): #I NEED IT TO NOT READ MESSAGES UNLESS INIT COMMMAND HAS BEEN CALLED
                 if(not keyentered):
                     tempuserkey = message.content #store  
@@ -70,20 +77,37 @@ class MyClient(discord.Client):
                             keyentered = False
                             await message.author.send("Invalid Secret or Key\nPlease initalize once again(Keys and Secrets must be Exact do not leave empty space)")
                         else:
+                            userList = sortUser(schoology(key,secret)) 
+                            tempusercode = userList[0] #sets the new usercode 
                             await message.author.send("Succesful you can now use the commands in your server")
                     except:
                         secretentered = False
                         keyentered = False
                         await message.author.send("Invalid Secret or Key\nPlease initalize once again(Keys and Secrets must be Exact do not leave empty space)")
 
-
-def sendEmbed(disc, title, desc, date, typeof, points, time):
+def sendEmbed(disc, title, desc, date, typeof, points, time, author, authorurl):
     #Creates embed and returns it 
     embedVar = disc.Embed(title= title, description= desc, color=0x42f5f5)
+    embedVar.set_author(name= author, icon_url= authorurl) #shows the user name and their avator at the top of the embed for aesthetic purposes 
+    embedVar.set_thumbnail(url = "https://p11cdn4static.sharpschool.com/UserFiles/Servers/Server_141067/Image/sgy%20logo%20resized.png") #shows the schoology logo for aesthetic purposes
     embedVar.add_field(name="Assignment Type", value=typeof, inline=False)
     embedVar.add_field(name="Points Worth", value= points, inline=False)    
     embedVar.add_field(name="Time Due", value= time, inline=False)
     return embedVar
+
+def sendClassEmbed(disc, class1, class2, class3, class4, class5, class6):
+    #creates the embed to show the selected user's classes
+    #should be followed by bot seeing which class it chose in classesList and set the class code accordingly
+    embed= disc.Embed(title="Your Classes", description="Please choose which class you would like to view", color=0xd72828)
+    embed.set_thumbnail(url="https://p11cdn4static.sharpschool.com/UserFiles/Servers/Server_141067/Image/sgy%20logo%20resized.png")
+    embed.add_field(name="1. " + class1, value="", inline=False)
+    embed.add_field(name="2. " + class2, value="", inline=False)
+    embed.add_field(name="3. " + class3, value="", inline=False)
+    embed.add_field(name="4. " + class4, value="", inline=False)
+    embed.add_field(name="5. " + class5, value="", inline=False)
+    embed.add_field(name="6. " + class6, value="", inline=False)
+    embed.set_footer(text="Please select a number 1-6")
+    return embed
 
 def getCurrentDate(tomorrow):
     #gets the current date
@@ -123,10 +147,6 @@ def convertTime(milTime):
     standardTime = str(temptime[0]) + ':' + temptime[1] + ' '+ temptime[2]
     return standardTime
 
-sc = schoology(key,secret)
-scgetallcourses = sc.getusercourses(userscode)
-#print(scgetallcourses)
-
 def sortAssignments(school, classcode):
     sc = school
     starter = 0
@@ -152,7 +172,7 @@ def sortAssignments(school, classcode):
                 scgetassignments.append(x)
     return tempDict
 
-def sortClasses(school):
+def sortClasses(school, userscode):
     sc = school 
     scgetuserinfo = sc.getusercourses(userscode)
     scgetallcourses = scgetuserinfo['section']
@@ -160,19 +180,45 @@ def sortClasses(school):
     for i in scgetallcourses:
         tempDict[i['course_title']] = i['id']
     return tempDict
-    
-"""
-assignmentDict = sortAssignments(schoology(key,secret))
-valueList = list(assignmentDict.values())
-print(assignmentDict)
 
-try:
-    banana = assignmentDict[currentDate]
-    print(banana)
-except KeyError:
-    print("There are no assignments due today")
-"""
-classesDict = sortClasses(schoology(key, secret))
-print(classesDict)
+def sortUser(school):
+    sc = school 
+    scgetusercode = sc.getusercode()
+    tempList = [""]
+    tempList[0] = scgetusercode['uid']
+    return tempList
+
+def sortChosenClass(input):
+    #takes the input of the user which is a number 1-6 and and matches the class to the class code
+    classesDict = sortClasses(schoology(key, secret), userscode)
+    classesList = list(classesDict.keys())
+    print(classesDict)
+    print(classesList)
+    classchoiceName = ''
+    classchoiceCode = ''
+    if (input == 1):
+        classchoiceName = classesList[0]
+        classchoiceCode = classesDict[classchoiceName]
+    elif (input == 2):
+        classchoiceName = classesList[1]
+        classchoiceCode = classesDict[classchoiceName]
+    elif (input == 3):
+        classchoiceName = classesList[2]
+        classchoiceCode = classesDict[classchoiceName]
+    elif (input == 4):
+        classchoiceName = classesList[3]
+        classchoiceCode = classesDict[classchoiceName]
+    elif (input == 5):
+        classchoiceName = classesList[4]
+        classchoiceCode = classesDict[classchoiceName]
+    elif (input == 6):
+        classchoiceName = classesList[5]
+        classchoiceCode = classesDict[classchoiceName]
+    return classchoiceCode
+
+userList = sortUser(schoology(key,secret))
+classchoice = sortChosenClass(2)
+print(classchoice)
+#print(userList)
 client = MyClient()
 client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")

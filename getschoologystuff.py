@@ -44,7 +44,6 @@ class schoology:
         except JSONDecodeError:
             return{}
             
-
     def getassignments(self, start, limit, classcode):
         try:
             getlink = "https://api.schoology.com/v1/sections/" + classcode + "/assignments"+"?start="+str(start)+"&limit="+str(limit)
