@@ -10,30 +10,54 @@ path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
 userscode = "55633162"
+userChannels = {}
+userGuild = ""
+keyentered = False
+secretentered = False
+tempuserkey = " "
+tempusersecret = " "
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_message(self, message):
-        if (message.content == "+today"):
-            print(message.author,":", message.content)
-            assignmentDict = sortAssignments(schoology(key,secret))
-            #valueList = list(assignmentDict.values())
-            try:
-                cdate = getCurrentDate(False)
-                temp = assignmentDict[cdate]
-                await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
-            except KeyError:
-                await message.channel.send(message.author.mention + " There are no assignments due today")
-        elif (message.content == "+nextday"):
-            print(message.author,":", message.content)
-            assignmentDict = sortAssignments(schoology(key,secret))
-            try:
-                nextDate = getCurrentDate(True)
-                temp = assignmentDict[nextDate] #replace brackets with nextDate
-                await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1]))
-            except KeyError:
-                await message.channel.send(message.author.mention +  " There are no assignments due Tomorrow")
+        global keyentered, secretentered, tempuserkey, tempusersecret
+        if(message.author.id != self.user.id):
+            if(message.guild != None):
+                if(keyentered !=False and secretentered != False):
+                    if (message.content == "+today"):
+                        print(message.author,":", message.content)
+                        assignmentDict = sortAssignments(schoology(tempuserkey, tempusersecret))
+                        #valueList = list(assignmentDict.values())
+                        try:
+                            cdate = getCurrentDate(False)
+                            temp = assignmentDict[cdate]
+                            await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1]))
+                        except KeyError:
+                            await message.channel.send(message.author.mention + " There are no assignments due today")
+                    elif (message.content == "+nextday"):
+                        print(message.author,":", message.content)
+                        assignmentDict = sortAssignments(schoology(key,secret))
+                        try:
+                            nextDate = getCurrentDate(True)
+                            temp = assignmentDict[nextDate] #replace brackets with nextDate
+                            await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],nextDate,temp[4], temp[2], temp[1]))
+                        except KeyError:
+                            await message.channel.send(message.author.mention +  " There are no assignments due Tomorrow")
+                    else:
+                        await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
+                elif(message.content == "+init"):
+                    userGuild = message.guild
+                    print(userGuild)
+                    await message.author.send("Hello\nPlease Enter key and Secret\n\nEnter Key Below: ")
+            elif(message.guild == None):
+                if(not keyentered):
+                    tempuserkey = message.content 
+                    keyentered = True
+                elif(not secretentered):
+                    tempusersecret = message.content
+                    secretentered = True
+
 
 def sendEmbed(disc, title, desc, date, typeof, points, time):
     #Creates embed and returns it 
