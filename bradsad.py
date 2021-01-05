@@ -6,9 +6,8 @@ import pytz
 from datetime import datetime
 from getschoologystuff import schoology as schoology
 
-
 #else:
-#   await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
+    #await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
 path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
@@ -20,6 +19,7 @@ keyentered = False
 secretentered = False
 tempuserkey = " "
 tempusersecret = " "
+tempusercode = ""
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -57,7 +57,7 @@ class MyClient(discord.Client):
                     #gets all classes from user, it will need the usercode (new or not), so you can move this elif around to where the user has already intialized
                     classesDict = sortClasses(schoology(key, secret), tempusercode)
                     classesList = classesDict.keys()
-                    await message.channel.send(embed = sendClassEmbed(discord, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5])) 
+                    await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5])) 
                     #after the embed message the user should choose a number which corresponds to the course, which will be linked to a classcode.
                     #then the function sortChosenClass will be called which will take their input and return the class code (make sure to int() their input)
             elif(message.guild == None and (not keyentered and not secretentered)): #I NEED IT TO NOT READ MESSAGES UNLESS INIT COMMMAND HAS BEEN CALLED
@@ -77,7 +77,7 @@ class MyClient(discord.Client):
                             keyentered = False
                             await message.author.send("Invalid Secret or Key\nPlease initalize once again(Keys and Secrets must be Exact do not leave empty space)")
                         else:
-                            userList = sortUser(schoology(key,secret)) 
+                            userList = sortUser(schoology(tempuserkey,tempusersecret)) 
                             tempusercode = userList[0] #sets the new usercode 
                             await message.author.send("Succesful you can now use the commands in your server")
                     except:
@@ -95,10 +95,11 @@ def sendEmbed(disc, title, desc, date, typeof, points, time, author, authorurl):
     embedVar.add_field(name="Time Due", value= time, inline=False)
     return embedVar
 
-def sendClassEmbed(disc, class1, class2, class3, class4, class5, class6):
+def sendClassEmbed(disc, author, authorurl, class1, class2, class3, class4, class5, class6):
     #creates the embed to show the selected user's classes
     #should be followed by bot seeing which class it chose in classesList and set the class code accordingly
-    embed= disc.Embed(title="Your Classes", description="Please choose which class you would like to view", color=0xd72828)
+    embed= disc.Embed(title="Your Classes", description="Please choose which class you would like to view", color=0x5119d4)
+    embed.set_author(name= author, icon_url= authorurl)
     embed.set_thumbnail(url="https://p11cdn4static.sharpschool.com/UserFiles/Servers/Server_141067/Image/sgy%20logo%20resized.png")
     embed.add_field(name="1. " + class1, value="", inline=False)
     embed.add_field(name="2. " + class2, value="", inline=False)

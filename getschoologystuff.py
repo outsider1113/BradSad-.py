@@ -9,7 +9,6 @@ try:
 except ImportError:
     JSONDecodeError = ValueError
 class schoology:
-
     def __init__(self, consumer_key, consumer_secret, domain='https://www.schoology.com', three_legged=False,
                     request_token=None, request_token_secret=None, access_token=None, access_token_secret=None):
             #establishes the root and domain which we already know 
