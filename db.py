@@ -27,7 +27,10 @@ class database:
     
     """
     We will need to make a create TABLE function that runs once somehow when deploying to heroku. Usually we can check if the db exists by running the function again and if 
-    their is an error we can use try/except to ignore it 
+    their is an error we can use try/except to ignore it
+
+    Also maybe add a HASH for encrypting secret and key(if you have time then you can but i doubt that many people will use it) if in more than 2000 guilds discord kinda
+    requires that but we good i think
     """
     def checkguildInDb(self, guildID):
         cur = self.con.cursor(cursor_factory= psycopg2.extras.DictCursor)
@@ -49,7 +52,7 @@ class database:
         cur = self.con.cursor()
         cur.execute("insert into disc_users (guild,init) values(%s,%s)", (newguildID,False,)) #This SHOULD ONLY  execute when the user first types init we need a checker BECAUSE your making a NEW row
         self.con.commit()
-        cur.close() 
+        cur.close()             #I THINK we should also add the user who initialized it
         self.con.close()
 
     def addSecretAndKey(self, newSecret, newKey,guildID):
@@ -62,4 +65,15 @@ class database:
 db = database()
 #s = db.checkguildInDb("121212121")
 #v = db.getGuildProfile("121212121")
-db.addSecretAndKey("1c475f21b3be07678881010db6f0d207","0aed61ccaff6e2bdbb85018b9b787fbc05f51704a","722984937468198978")
+#db.addSecretAndKey("1c475f21b3be07678881010db6f0d207","0aed61ccaff6e2bdbb85018b9b787fbc05f51704a","722984937468198978")
+
+"""
+whats left to do is finish the bot part using this module 
+ill figure it out some other day but you can explore some
+stuff with sql adn what else a db can do
+"""
+"""
+Todo: 
+-add a delete row function incase they kick the bot or use a command to clear themselves or if the first init command call fails(this should delete the row by looking for the row with the guildID)
+-add function that adds the class code/ user code to db
+-add a function that can change the class code / user code 
