@@ -190,7 +190,7 @@ def sortUser(school):
     tempList[0] = scgetusercode['uid']
     return tempList
 
-def sortChosenClass(input):
+def sortChosenClass(num):
     #takes the input of the user which is a number 1-6 and and matches the class to the class code
     classesDict = sortClasses(schoology(key, secret), userscode)
     classesList = list(classesDict.keys())
@@ -201,22 +201,22 @@ def sortChosenClass(input):
     """
     Bro what if i told you input is a python function and this probably gonna break sooner or later if not changed 
     """
-    if (input == 1):
+    if (num == 1):
         classchoiceName = classesList[0]
         classchoiceCode = classesDict[classchoiceName]
-    elif (input == 2):
+    elif (num == 2):
         classchoiceName = classesList[1]
         classchoiceCode = classesDict[classchoiceName]
-    elif (input == 3):
+    elif (num == 3):
         classchoiceName = classesList[2]
         classchoiceCode = classesDict[classchoiceName]
-    elif (input == 4):
+    elif (num == 4):
         classchoiceName = classesList[3]
         classchoiceCode = classesDict[classchoiceName]
-    elif (input == 5):
+    elif (num == 5):
         classchoiceName = classesList[4]
         classchoiceCode = classesDict[classchoiceName]
-    elif (input == 6):
+    elif (num == 6):
         classchoiceName = classesList[5]
         classchoiceCode = classesDict[classchoiceName]
     return classchoiceCode

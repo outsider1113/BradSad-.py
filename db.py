@@ -23,7 +23,7 @@ class database:
             database = "postgres",
             user = "postgres",
             password = "ballsdeep69",
-            port = 5433)#5432 if brando
+            port = 5432)#5432 if brando, 5433 if joel
     
     """
     We will need to make a create TABLE function that runs once somehow when deploying to heroku. Usually we can check if the db exists by running the function again and if 
@@ -55,7 +55,7 @@ class database:
         cur.close()             #I THINK we should also add the user who initialized it
         self.con.close()
 
-    def addSecretAndKey(self, newSecret, newKey,guildID):
+    def addSecretAndKey(self, newKey, newSecret, guildID):
         cur = self.con.cursor()
         cur.execute("update disc_users set secret = %s, key = %s, init = %s where guild = %s", (newSecret, newKey, True,guildID,)) #IF this were to run then that would mean that the secret and key are correct and init is then made TRUE
         self.con.commit()
@@ -63,9 +63,10 @@ class database:
         self.con.close()
 
 db = database()
+#db.addGuildID("445070783258165288")   -penthouse
 #s = db.checkguildInDb("121212121")
 #v = db.getGuildProfile("121212121")
-#db.addSecretAndKey("1c475f21b3be07678881010db6f0d207","0aed61ccaff6e2bdbb85018b9b787fbc05f51704a","722984937468198978")
+#db.addSecretAndKey("6c457bdf6661e60b42292540a754394e05faf105c","7595214e6c1a35452960e2fbfe0bafe9","445070783258165288")
 
 """
 whats left to do is finish the bot part using this module 
