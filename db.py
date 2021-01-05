@@ -77,3 +77,4 @@ Todo:
 -add a delete row function incase they kick the bot or use a command to clear themselves or if the first init command call fails(this should delete the row by looking for the row with the guildID)
 -add function that adds the class code/ user code to db
 -add a function that can change the class code / user code 
+"""
