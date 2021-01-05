@@ -20,12 +20,13 @@ secretentered = False
 tempuserkey = " "
 tempusersecret = " "
 tempusercode = ""
+initializing = False
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
 
     async def on_message(self, message):
-        global keyentered, secretentered, tempuserkey, tempusersecret, tempusercode
+        global keyentered, secretentered, tempuserkey, tempusersecret, tempusercode, initializing
         if(message.author.id != self.user.id):
             if(message.guild != None):
                 if(message.content == "+today" and keyentered and secretentered):
@@ -197,6 +198,9 @@ def sortChosenClass(input):
     print(classesList)
     classchoiceName = ''
     classchoiceCode = ''
+    """
+    Bro what if i told you input is a python function and this probably gonna break sooner or later if not changed 
+    """
     if (input == 1):
         classchoiceName = classesList[0]
         classchoiceCode = classesDict[classchoiceName]
