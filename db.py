@@ -23,7 +23,7 @@ class database():
             database = "postgres",
             user = "postgres",
             password = "ballsdeep69",
-            port = 5433
+            port = 5432
             )#5432 if brando, 5433 if joel
     """
     We will need to make a create TABLE function that runs once somehow when deploying to heroku. Usually we can check if the db exists by running the function again and if 

@@ -3,7 +3,7 @@ import oauth2 as oauth, urllib
 import requests_oauthlib
 import json
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 from getschoologystuff import schoology as schoology
 from db import database as database
 #else:
@@ -132,8 +132,9 @@ class MyClient(discord.Client):
                     try:
                         assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
                         cdate = getCurrentDate(False)
-                        temp = assignmentDict[cdate]
-                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                        times = sortAssignments(schoology(userkey, usersecret),classcode).values()
+                        print(times)
+                        #await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                     except KeyError:
                         await message.channel.send(message.author.mention + " There are no assignments due today")
             else:
@@ -320,7 +321,7 @@ def sortAssignments(school, classcode):
         #loops through all assignments and assigns the tite and date to a dictionary where the keys are the dates and the values are the titles
         assignmentDueDateandTime = i['due'].split()
         assignmentDueDateandTime[1] = convertTime(assignmentDueDateandTime)
-        tempDict[assignmentDueDateandTime[0]] = [i['title'], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
+        tempDict[i['title']] = [assignmentDueDateandTime[0], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
         assignmentCounter += 1
         if(assignmentCounter == 20):
             #resets the limit and calls the getassignments module again to get all assignments
@@ -342,7 +343,7 @@ def sortClasses(school, userscode):
     tempListNames = []
     tempListIds = []
     for i in scgetallcourses:
-        print(i)
+        #print(i)
         #This would append to the two lists
         tempListNames.append(i['course_title'])
         tempListIds.append(i['id'])
@@ -391,14 +392,41 @@ def sortChosenClass(num,key,secret,usercode):
         return None
     return [classchoiceCode, classchoiceName]
 
+def dupeChecker(dict, key):
+    for i in dict:
+        if key == i:
+            print("A dupe has been found")
+            return dict[i]
+        else:
+            print("No dupes have been found")
+
+def getWeek():
+    #assignmentDict = sortAssignments(schoology(key,secret),classcode)
+    weekList = []
+    pst = pytz.timezone('America/Los_Angeles')
+    cdate = datetime.now(pst)
+    #print(cdate, tdate)
+    for i in range(7):
+        tdate = cdate + timedelta(days = i)
+        dateAndTime = str(tdate).split()
+        print(dateAndTime[0])
+        weekList.append(dateAndTime[0])
+    return weekList
+
 #userList = sortUser(schoology(key,secret))
 #classchoice = sortChosenClass(2)
 #print(classchoice)
 #print(userList)
+classesDict = sortClasses(schoology(key, secret), userscode)
+assignmentDict = sortAssignments(schoology(key,secret),classcode)
+#print(classesDict)
+#print(assignmentDict)
+#dupeReturn = dupeChecker(assignmentDict, '2020-08-31')
+#print(dupeReturn)
+week = getWeek()
+print(week)
 client = MyClient()
 client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
-
-
 
 """
 -I realized a dictioanry cant have values with the same KEY so this means that if someone has the same titled class or if 

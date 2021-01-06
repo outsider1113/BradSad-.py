@@ -3,7 +3,7 @@ import oauth2 as oauth, urllib
 import requests_oauthlib
 import json
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 try:
     from json.decoder import JSONDecodeError
 except ImportError:
