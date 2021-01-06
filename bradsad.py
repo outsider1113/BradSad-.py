@@ -339,7 +339,14 @@ def sortClasses(school, userscode):
     scgetuserinfo = sc.getusercourses(userscode)
     scgetallcourses = scgetuserinfo['section']
     tempDict = {}
+    tempListNames = []
+    tempListIds = []
     for i in scgetallcourses:
+        print(i)
+        #This would append to the two lists
+        tempListNames.append(i['course_title'])
+        tempListIds.append(i['id'])
+
         tempDict[i['course_title']] = i['id']
     return tempDict
 
