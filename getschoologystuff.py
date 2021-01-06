@@ -1,4 +1,4 @@
-import time, discord, requests
+import time, discord, requests, random
 import oauth2 as oauth, urllib
 import requests_oauthlib
 import json
@@ -45,7 +45,7 @@ class schoology:
             
     def getassignments(self, start, limit, classcode):
         try:
-            getlink = "https://api.schoology.com/v1/sections/" + classcode + "/assignments"+"?start="+str(start)+"&limit="+str(limit)
+            getlink = "https://api.schoology.com/v1/sections/" + str(classcode) + "/assignments"+"?start="+str(start)+"&limit="+str(limit)
             courses = self.oauth.get(getlink)
             return courses.json()
         except JSONDecodeError:
