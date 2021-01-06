@@ -39,7 +39,7 @@ class MyClient(discord.Client):
         print(args)
         if (args[0]== "+help"):
             await message.channel.send(embed = helpEmbed(discord))
-            await message.author.send(embed = initEmbed(discord))
+            #await message.author.send(embed = initEmbed(discord))
         elif(args[0] == "+init"):
             db = database()
             if(db.checkguildInDb(message.guild.id) == None):
@@ -138,6 +138,29 @@ class MyClient(discord.Client):
                         await message.channel.send(message.author.mention + " There are no assignments due today")
             else:
                 await message.channel.send("Please use this command in your Server")
+        elif(args[0] == "+nextday"):
+            if(message.guild != None):
+                userDb = database().checkguildInDb(message.guild.id)
+                if(userDb == None):
+                    await message.channel.send("Pleas use '+init' command first and finish setup")
+                elif(userDb != None and database().getGuildProfile(message.guild.id)['init'] == False):
+                    await message.channel.send("Please finsih setup with '+init' command")
+                else:
+                    profile = database().getGuildProfile(message.guild.id)
+                    userkey = profile['key']
+                    usersecret = profile['secret']
+                    classcode = profile['class_code']
+                    #assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
+                    
+                    try:
+                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
+                        cdate = getCurrentDate(True)#for next date this just has to be true
+                        temp = assignmentDict[cdate]
+                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                    except KeyError:
+                        await message.channel.send(message.author.mention + " There are no assignments due today")
+            else:
+                await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+classes"):
             """
             classesDict = sortClasses(schoology(key, secret), userscode)
@@ -154,9 +177,10 @@ class MyClient(discord.Client):
                     profile = database().getGuildProfile(message.guild.id)
                     userkey = profile['key']
                     usersecret = profile['secret']
-                    usercode = profile['user_code']
-                    classesDict = sortClasses(schoology(key, secret), userscode)
+                    usercode = str(profile['user_code'])
+                    classesDict = sortClasses(schoology(userkey, usersecret), usercode)
                     classesList = list(classesDict.keys())
+                    print(classesList)
                     await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
             else:
                 await message.channel.send("Please use this command in your Server")
@@ -370,19 +394,11 @@ client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
 
 
 """
-for setup
-+init - initialization
+-I realized a dictioanry cant have values with the same KEY so this means that if someone has the same titled class or if 
+their is an assignment with the same due date we need to make an exception for it
+- so we have to make it a list and loop through the list in order to find matching things.
 
-    These should be used ONLY in direct message with the bot
-    +key - enter key as second word  ex: "+key {enter key here}"
-    +secret - enter secret as second word ex: "+secret {enter secret here}"
+optimal? No, but fuck you
 
-+classes - lets them choose which class to setup updates for
-
----------------------------------------------------------
-
-For regular commands
-+today 
-+nextday
-+reset - deletes their row and requires init to be called again
+other than that were basically done we just need to push to heroku 
 """
