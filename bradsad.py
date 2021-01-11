@@ -17,7 +17,6 @@ tempuserkey = " "
 tempusersecret = " "
 tempusercode = ""
 initializing = False
-database().createTable()
 
 class MyClient(discord.Client):
     async def on_ready(self):
