@@ -17,10 +17,7 @@ tempuserkey = " "
 tempusersecret = " "
 tempusercode = ""
 initializing = False
-try:
-    database().createTable()
-except:
-    print("db already exists fool")
+database().createTable()
 
 class MyClient(discord.Client):
     async def on_ready(self):
