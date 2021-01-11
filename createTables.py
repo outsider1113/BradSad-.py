@@ -1,2 +1,2 @@
-from db import database as database
-database.createTable()
+from db import database
+database().createTable()
