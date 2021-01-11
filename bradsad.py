@@ -17,6 +17,11 @@ tempuserkey = " "
 tempusersecret = " "
 tempusercode = ""
 initializing = False
+try:
+    database().createTable()
+except:
+    print("db already exists fool")
+
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -424,14 +429,6 @@ def sortChosenClass(num,key,secret,usercode):
         return None
     return [classchoiceCode, classchoiceName]
 
-def dupeChecker(dict, key):
-    for i in dict:
-        if key == i:
-            print("A dupe has been found")
-            return dict[i]
-        else:
-            print("No dupes have been found")
-
 def getWeek():
     #assignmentDict = sortAssignments(schoology(key,secret),classcode)
     weekList = []
@@ -461,21 +458,9 @@ def checkDate(dict, key, secret, date, classc):
 #assignmentDict = sortAssignments(schoology(key,secret),classcode)
 #print(classesDict)
 #print(assignmentDict)
-#dupeReturn = dupeChecker(assignmentDict, '2020-08-31')
-#print(dupeReturn)
 #week = getWeek()
 #print(week)
 #datechecker = checkDate(assignmentDict, key, secret, '2021-01-20')
 #print(datechecker)
 client = MyClient()
-client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
-
-"""
--I realized a dictioanry cant have values with the same KEY so this means that if someone has the same titled class or if 
-their is an assignment with the same due date we need to make an exception for it
-- so we have to make it a list and loop through the list in order to find matching things.
-
-optimal? No, but fuck you
-
-other than that were basically done we just need to push to heroku 
-"""
+client.run(os.environ['token'])
