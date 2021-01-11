@@ -1,6 +1,8 @@
 import psycopg2
 import psycopg2.extras
 import os
+
+DATABASE_URL = os.environ['postgres://ggafqzhfpirbcv:380e30db212700a1427a48f143f59bd21b6563131387821e5eeb22157982a4c4@ec2-54-85-80-92.compute-1.amazonaws.com:5432/d6kmshmo9tirmk']
 """
 con = psycopg2.connect(
     host = "localhost",
