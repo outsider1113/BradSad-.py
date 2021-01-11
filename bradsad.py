@@ -6,18 +6,9 @@ import pytz
 from datetime import datetime, timedelta
 from getschoologystuff import schoology as schoology
 from db import database as database
-#else:
-    #await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
-profile = database().getGuildProfile("445070783258165288")
+import os
+
 path = "https://api.schoology.com/v1"
-key = "6c457bdf6661e60b42292540a754394e05faf105c"
-secret = "7595214e6c1a35452960e2fbfe0bafe9"
-#secret = profile['secret']
-#usercode = profile['user_code']
-#userscode = "55633162"
-#classcode = profile['class_code']
-#classcode = "3372958659"
-discordid = "343403664175792128"
 userChannels = {}
 userGuild = ""
 keyentered = False
@@ -79,7 +70,7 @@ class MyClient(discord.Client):
                             else:
                                 tempusercode = sortUser(schoology(userkey,userSecret)) #sets the new usercode
                                 database().addUsercode_id(tempusercode, userGuildID)
-                                await message.author.send("Succesful you can now use the commands in your server")
+                                await message.author.send("Succesful you can now use the commands in your server\nUse '+help' too see available commands")
                         except:
                             database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])
                             await message.channel.send("Invalid Secret or Key: Please use the command '+init' in your server again")
@@ -134,7 +125,6 @@ class MyClient(discord.Client):
                     try:
                         assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                         cdate = getCurrentDate(False)
-                        cdate = '2021-01-20'
                         assignmentDueList = checkDate(assignmentDict, userkey, usersecret, cdate, classcode)
                         if assignmentDueList != []:
                             print("bro what are you doing")
@@ -227,7 +217,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
             else:
                 await message.channel.send("Please use this command in your Server")
-        elif(args[0] == "+c"):
+        elif(args[0] == "+choose"):
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -273,7 +263,7 @@ def sendClassEmbed(disc, author, authorurl, class1, class2, class3, class4, clas
     embed.add_field(name="5. " , value=class5, inline=False)
     embed.add_field(name="6. " , value=class6, inline=False)
     embed.add_field(name="7. " , value=class7, inline=False)
-    embed.set_footer(text="Please select a number 1-7")
+    embed.set_footer(text="Please choose your class by typing +choose (1-7). Ex: '+choose 2' ")
     return embed
 
 def helpEmbed(disc):
@@ -287,9 +277,10 @@ def helpEmbed(disc):
     embed.add_field(name="+classes", value="Displays the list of classes you can see updates for.\n------------------------------------------------------------", inline=False)
     embed.add_field(name="General Commands:", value = ":gem:", inline=False)
     #embed.set_image(url="https://cdn.discordapp.com/attachments/461448421320949764/512005978108067850/image0.gif", inline =True)
-    embed.add_field(name="+classchoose (#1-7)", value="Choose the number that corresponds with the class you would like to view", inline=False)
+    embed.add_field(name="+choose (#1-7)", value="Choose the number that corresponds with the class you would like to view. :warning: Note: *+classes should be ran first to see which class is what number.*", inline=False)
     embed.add_field(name="+today", value="Shows all assignments due today for the class you have selected.", inline=False)
     embed.add_field(name="+nextday", value="Shows all assignments due tomorrow for the class you have selected.", inline=False)
+    embed.add_field(name="+thisweek", value="Shows all assignments due for the following week for the class you have selected.", inline=False)
     embed.add_field(name="+reset", value="Deletes your info from the bot's database. +init should be called again.\n----------------------------------------------------------- ", inline=True)
     embed.set_footer(text="If you have any further questions or suggestions contact BrandoWithTheLambo#3469")
     return embed
