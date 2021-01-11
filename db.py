@@ -4,7 +4,8 @@ import os
 
 class database():
     def __init__(self):
-        self.con = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
+        DATABASE_URL = os.environ['DATABASE_URL']
+        self.con = psycopg2.connect(DATABASE_URL, sslmode='require')
             
     def checkguildInDb(self, guildID):
         cur = self.con.cursor(cursor_factory= psycopg2.extras.DictCursor)
@@ -97,7 +98,7 @@ class database():
     
     def createTable(self):
         cur = self.con.cursor()
-        cur.execute("Create Table disc_users (guild bigint primary key, secret text, key text, init boolean, class_code bigint, user_code bigint, discuser_id bigint)")
+        cur.execute("create table disc_users (guild bigint primary key, secret text, key text, init boolean, class_code bigint, user_code bigint, discuser_id bigint)")
         self.con.commit
         cur.close()
         self.con.close()
