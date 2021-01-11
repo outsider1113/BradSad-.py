@@ -35,7 +35,7 @@ class MyClient(discord.Client):
         if(message.author.id == self.user.id):
             return
         args = message.content.split()
-        print(args)
+        #print(args)
         if (args[0]== "+help"):
             await message.channel.send(embed = helpEmbed(discord))
             #await message.author.send(embed = initEmbed(discord))
@@ -46,10 +46,10 @@ class MyClient(discord.Client):
                 db.addGuildID(message.guild.id, message.author.id)
                 #await message.author.send("Hello!\nLets Get Started With The Setup\n```css\nFor the following steps please vist your own Schoology page(The one you use everyday)\nThen In the Browser URL after the '.com' type '/api'\nIt should look something like this: 'www.schoology.com/api'\n(Note Schoology.com is probably different for you specific to your school which doesnt matter)\nThen the page it leads to will have your secret and key\nFor the Next part use the command '+key' in this direct message, in order to input your key from the webisite```")
                 await message.author.send(embed = initEmbed(discord))
-                print()
+                #print()
             else:
                 await message.channel.send(message.author.mention + "Someone has Already Called This Command")
-                print()
+                #print()
         elif(args[0] == "+secret"):
             if(message.guild == None):
                 userdb = database().checkuserInDb(message.author.id)
@@ -78,7 +78,7 @@ class MyClient(discord.Client):
                         except:
                             database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])
                             await message.channel.send("Invalid Secret or Key: Please use the command '+init' in your server again")
-                            print()
+                            #print()
                     except:
                         await message.channel.send("invalid secret entry")
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == False and database().getGuildProfile2(message.author.id)['secret'] != None and database().getGuildProfile2(message.author.id)['key'] != None):
@@ -214,10 +214,10 @@ class MyClient(discord.Client):
                     usersecret = profile['secret']
                     usercode = str(profile['user_code'])
                     classesDict = sortClasses(schoology(userkey, usersecret), usercode)
-                    print(classesDict)
+                    #print(classesDict)
                     classesList = list(classesDict.values())
                     #classesids = list(classesDict.keys())
-                    print(classesList)
+                    #print(classesList)
                     await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
             else:
                 await message.channel.send("Please use this command in your Server")
