@@ -17,9 +17,10 @@ tempuserkey = " "
 tempusersecret = " "
 tempusercode = ""
 initializing = False
-
-database().createTable()
-
+try:
+    database().createTable()
+except:
+    print("Table exists already")
 class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
