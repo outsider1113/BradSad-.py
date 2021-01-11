@@ -99,6 +99,6 @@ class database():
     def createTable(self):
         cur = self.con.cursor()
         cur.execute("create table disc_users (guild bigint , secret text, key text, init boolean, class_code bigint, user_code bigint, discuser_id bigint)")
-        self.con.commit
+        self.con.commit()
         cur.close()
         self.con.close()
