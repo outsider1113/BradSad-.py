@@ -8,11 +8,15 @@ from getschoologystuff import schoology as schoology
 from db import database as database
 #else:
     #await message.channel.send(message.author.mention + " Please Finish initalization first with command:\n+init")
+profile = database().getGuildProfile("445070783258165288")
 path = "https://api.schoology.com/v1"
 key = "6c457bdf6661e60b42292540a754394e05faf105c"
 secret = "7595214e6c1a35452960e2fbfe0bafe9"
-userscode = "55633162"
-classcode = "2535704616"
+#secret = profile['secret']
+#usercode = profile['user_code']
+#userscode = "55633162"
+#classcode = profile['class_code']
+#classcode = "3372958659"
 discordid = "343403664175792128"
 userChannels = {}
 userGuild = ""
@@ -73,8 +77,7 @@ class MyClient(discord.Client):
                                 database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])
                                 await message.channel.send("Invalid Secret or Key: Please use the command '+init' in your server again")
                             else:
-                                userList = sortUser(schoology(userkey,userSecret)) 
-                                tempusercode = userList #sets the new usercode
+                                tempusercode = sortUser(schoology(userkey,userSecret)) #sets the new usercode
                                 database().addUsercode_id(tempusercode, userGuildID)
                                 await message.author.send("Succesful you can now use the commands in your server")
                         except:
@@ -121,20 +124,26 @@ class MyClient(discord.Client):
                 if(userDb == None):
                     await message.channel.send("Pleas use '+init' command first and finish setup")
                 elif(userDb != None and database().getGuildProfile(message.guild.id)['init'] == False):
+
                     await message.channel.send("Please finsih setup with '+init' command")
                 else:
                     profile = database().getGuildProfile(message.guild.id)
                     userkey = profile['key']
                     usersecret = profile['secret']
                     classcode = profile['class_code']
-                    #assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
-                    
                     try:
-                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
+                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                         cdate = getCurrentDate(False)
-                        times = sortAssignments(schoology(userkey, usersecret),classcode).values()
-                        print(times)
-                        #await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                        cdate = '2021-01-20'
+                        assignmentDueList = checkDate(assignmentDict, userkey, usersecret, cdate, classcode)
+                        if assignmentDueList != []:
+                            print("bro what are you doing")
+                            print(assignmentDueList)
+                            for i in assignmentDueList:
+                                temp = assignmentDict[i]
+                                await message.channel.send(embed = sendEmbed(discord,i,temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                        else:
+                            await message.channel.send(message.author.mention + " There are assignments due today")
                     except KeyError:
                         await message.channel.send(message.author.mention + " There are no assignments due today")
             else:
@@ -151,15 +160,46 @@ class MyClient(discord.Client):
                     userkey = profile['key']
                     usersecret = profile['secret']
                     classcode = profile['class_code']
-                    #assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
-                    
+                    #assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                     try:
-                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode )
+                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                         cdate = getCurrentDate(True)#for next date this just has to be true
-                        temp = assignmentDict[cdate]
-                        await message.channel.send(embed = sendEmbed(discord,temp[0],temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                        assignmentDueList = checkDate(assignmentDict, userkey, usersecret, cdate, classcode)
+                        for i in assignmentDueList:
+                            temp = assignmentDict[i]
+                            await message.channel.send(embed = sendEmbed(discord,i,temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                     except KeyError:
                         await message.channel.send(message.author.mention + " There are no assignments due today")
+            else:
+                await message.channel.send("Please use this command in your Server")
+        elif(args[0] == "+thisweek"):
+            if(message.guild != None):
+                userDb = database().checkguildInDb(message.guild.id)
+                if(userDb == None):
+                    await message.channel.send("Pleas use '+init' command first and finish setup")
+                elif(userDb != None and database().getGuildProfile(message.guild.id)['init'] == False):
+
+                    await message.channel.send("Please finsih setup with '+init' command")
+                else:
+                    profile = database().getGuildProfile(message.guild.id)
+                    userkey = profile['key']
+                    usersecret = profile['secret']
+                    classcode = profile['class_code']
+                    try:
+                        assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
+                        cdate = getCurrentDate(False)
+                        week = getWeek()
+                        for i in range(len(week)):
+                            dayof = week[i]
+                            assignmentDueList = checkDate(assignmentDict, userkey, usersecret, dayof, classcode)
+                            if assignmentDueList != []:
+                                await message.channel.send(message.author.mention +" Assignments due on "+ dayof+ ":")
+                                for i in assignmentDueList:
+                                    temp = assignmentDict[i]
+                                    await message.channel.send(embed = sendEmbed(discord,i,temp[3],dayof,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
+                        await message.channel.send("There are no other assignments due this week for this class")
+                    except KeyError:
+                        await message.channel.send(message.author.mention + " There are no assignments due this week")
             else:
                 await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+classes"):
@@ -180,7 +220,9 @@ class MyClient(discord.Client):
                     usersecret = profile['secret']
                     usercode = str(profile['user_code'])
                     classesDict = sortClasses(schoology(userkey, usersecret), usercode)
-                    classesList = list(classesDict.keys())
+                    print(classesDict)
+                    classesList = list(classesDict.values())
+                    #classesids = list(classesDict.keys())
                     print(classesList)
                     await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
             else:
@@ -201,8 +243,9 @@ class MyClient(discord.Client):
                     if classChosenList == None:
                         await message.channel.send("your dumb af")
                     else:
-                        #usercode = classChosenList[0]
-                        #classcode = classChosenList[1]
+                        classcode = classChosenList[0]
+                        usercode = classChosenList[1]
+                        database().addClasscode(classcode, message.guild.id)
                         await message.channel.send("You have selected **"+classChosenList[1]+"**, if this is not the class you want to view please resend the command.")
         else:
             return
@@ -265,7 +308,8 @@ def initEmbed(disc):
     #embeded message that should be sent to the user in dm's 
     embed = disc.Embed(title = "For the following steps please vist your own Schoology page :computer:", description = 'The one you use everyday', color = 0xc738e0)
     embed.set_thumbnail(url = "https://p11cdn4static.sharpschool.com/UserFiles/Servers/Server_141067/Image/sgy%20logo%20resized.png")
-    embed.add_field(name = "Then in the browser URL after the .com type /api :globe_with_meridians:", value = "The url should look like lms.lausd.net/api or schoology.com/api", inline = False)
+    embed.add_field(name = "Then in the browser URL after the .com type /api :globe_with_meridians:", value = "The url should look like image at the bottom", inline = False)
+    embed.set_image(url = "https://cdn.discordapp.com/attachments/795530791915749378/798278609760026714/unknown.png")
     embed.add_field(name = "Next type +key (your key from the site) :key: ", value = "Your message should look like '+key sdlfk332j22' ", inline = True)
     embed.add_field(name = "After the successful key add, type +secret (your secret from the api site) :lock:", value = "Your message should look like '+secret bvnxm321r'", inline = True)
     embed.set_footer(text="If you have any further questions or suggestions contact BrandoWithTheLambo#3469")
@@ -294,7 +338,6 @@ def getCurrentDate(tomorrow):
     dateAndTime = str(tempDate).split()
     currentDate = dateAndTime[0]
     print("The current date is:", currentDate)
-    print("Sad Brad")
     return currentDate
 
 def convertTime(milTime):
@@ -347,8 +390,7 @@ def sortClasses(school, userscode):
         #This would append to the two lists
         tempListNames.append(i['course_title'])
         tempListIds.append(i['id'])
-
-        tempDict[i['course_title']] = i['id']
+        tempDict[i['id']] = i['course_title']
     return tempDict
 
 def sortUser(school):
@@ -362,32 +404,31 @@ def sortUser(school):
 def sortChosenClass(num,key,secret,usercode):
     #takes the input of the user which is a number 1-7 and and matches the class to the class code
     classesDict = sortClasses(schoology(key, secret), usercode)
-    classesList = list(classesDict.keys())
-    print(classesDict)
-    print(classesList)
+    classesList = list(classesDict.values())
+    classesID = list(classesDict.keys())
     classchoiceName = ''
     classchoiceCode = ''
     if (num == '1'):
         classchoiceName = classesList[0]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[0]
     elif (num == '2'):
         classchoiceName = classesList[1]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[1]
     elif (num == '3'):
         classchoiceName = classesList[2]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[2]
     elif (num == '4'):
         classchoiceName = classesList[3]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[3]
     elif (num == '5'):
         classchoiceName = classesList[4]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[4]
     elif (num == '6'):
         classchoiceName = classesList[5]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[5]
     elif (num == '7'):
         classchoiceName = classesList[6]
-        classchoiceCode = classesDict[classchoiceName]
+        classchoiceCode = classesID[6]
     else:
         return None
     return [classchoiceCode, classchoiceName]
@@ -405,26 +446,36 @@ def getWeek():
     weekList = []
     pst = pytz.timezone('America/Los_Angeles')
     cdate = datetime.now(pst)
-    #print(cdate, tdate)
     for i in range(7):
         tdate = cdate + timedelta(days = i)
         dateAndTime = str(tdate).split()
-        print(dateAndTime[0])
         weekList.append(dateAndTime[0])
     return weekList
+
+def checkDate(dict, key, secret, date, classc):
+    times = list(sortAssignments(schoology(key, secret),classc).values())
+    names = list(sortAssignments(schoology(key, secret),classc).keys())
+    listofdue = []
+    for i in range(len(times)):
+        templist = times[i]
+        if date == templist[0]:
+            listofdue.append(names[i])
+    return listofdue
 
 #userList = sortUser(schoology(key,secret))
 #classchoice = sortChosenClass(2)
 #print(classchoice)
 #print(userList)
-classesDict = sortClasses(schoology(key, secret), userscode)
-assignmentDict = sortAssignments(schoology(key,secret),classcode)
+#classesDict = sortClasses(schoology(key, secret), userscode)
+#assignmentDict = sortAssignments(schoology(key,secret),classcode)
 #print(classesDict)
 #print(assignmentDict)
 #dupeReturn = dupeChecker(assignmentDict, '2020-08-31')
 #print(dupeReturn)
-week = getWeek()
-print(week)
+#week = getWeek()
+#print(week)
+#datechecker = checkDate(assignmentDict, key, secret, '2021-01-20')
+#print(datechecker)
 client = MyClient()
 client.run("Nzk0ODA5MzYzOTczMjc1NjQ4.X_AN5w.cZvphqU4FLUrG4Kl4H7p-29l1uE")
 

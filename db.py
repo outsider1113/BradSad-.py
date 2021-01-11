@@ -128,7 +128,7 @@ db = database()
 #s = db.checkguildInDb("121212121")
 #v = db.getGuildProfile("121212121")
 #db.addSecretAndKey("6c457bdf6661e60b42292540a754394e05faf105c","7595214e6c1a35452960e2fbfe0bafe9","445070783258165288")
-#db.addClasscode("2535704616", "445070783258165288")
+#db.addClasscode("3372963514", "445070783258165288")
 #db.addUsercode_id("55633162", "445070783258165288") brando user and discid, for penthouse
 #db.addGuildID("722984937468198978", "343403664175792128") 
 #db.addClasscode("3372963610", "722984937468198978") #interfaceerror- connection already closed, if you were to run 93 and 94 (where the guildid originally doesnt exist) it adds another row for the guildid, but places the classcode in the first row.
