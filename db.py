@@ -4,8 +4,7 @@ import os
 
 class database():
     def __init__(self):
-        DATABASE_URL = os.environ['postgres://ggafqzhfpirbcv:380e30db212700a1427a48f143f59bd21b6563131387821e5eeb22157982a4c4@ec2-54-85-80-92.compute-1.amazonaws.com:5432/d6kmshmo9tirmk']
-        self.con = psycopg2.connect(DATABASE_URL, sslmode='require')
+        self.con = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
             
     def checkguildInDb(self, guildID):
         cur = self.con.cursor(cursor_factory= psycopg2.extras.DictCursor)
