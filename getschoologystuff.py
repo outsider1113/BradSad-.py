@@ -31,6 +31,7 @@ class schoology:
             self.three_legged = three_legged
 
     def getusercode(self):
+        #using the key and secret provided, gets a dictionary of the user's information. ex: name, usercode, student id, etc.
         try:
             user = self.oauth.get("https://api.schoology.com/v1/users/me")
             return user.json()
@@ -38,6 +39,7 @@ class schoology:
             return None
 
     def getusercourses(self,usercode):
+        #using the key,secret, and usercode, gets all of the user's classes in a dictionary
         try:
             classes = self.oauth.get("https://api.schoology.com/v1/users/" + usercode + "/sections")
             return classes.json()
@@ -45,6 +47,7 @@ class schoology:
             return{}
             
     def getassignments(self, start, limit, classcode):
+        #using the key,secret,usercode, and classcode selected, gets a massive dictionary of all the assignments
         try:
             getlink = "https://api.schoology.com/v1/sections/" + str(classcode) + "/assignments"+"?start="+str(start)+"&limit="+str(limit)
             courses = self.oauth.get(getlink)

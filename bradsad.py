@@ -18,48 +18,55 @@ tempusersecret = " "
 tempusercode = ""
 initializing = False
 try:
+    #creates the table
     database().createTable()
 except:
     print("Table exists already")
 class MyClient(discord.Client):
     async def on_ready(self):
+        #bot logs in
         print('Logged on as {0}!'.format(self.user))
     
     async def on_guild_join(self, guild):
+        #sends a welcome message when the bot joins a server
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
                 await channel.send(embed = welcomeEmbed(discord))
             break
     
     async def on_message(self, message):
+        #runs the main functions based off the discord user's messsage
         if(message.author.id == self.user.id):
             return
         args = message.content.split()
-        #print(args)
         if (args[0]== "+help"):
+            #sends an embeded message that shows all the commands if the user sends the command +help
             await message.channel.send(embed = helpEmbed(discord))
-            #await message.author.send(embed = initEmbed(discord))
         elif(args[0] == "+init"):
+            #sends a direct message to the user who sends the +init command and begins the process to get the schoology api key and secret
             db = database()
             if(db.checkguildInDb(message.guild.id) == None):
+                #adds a new row to the table, adds the server id and discord user id as well
                 db = database()
                 db.addGuildID(message.guild.id, message.author.id)
-                #await message.author.send("Hello!\nLets Get Started With The Setup\n```css\nFor the following steps please vist your own Schoology page(The one you use everyday)\nThen In the Browser URL after the '.com' type '/api'\nIt should look something like this: 'www.schoology.com/api'\n(Note Schoology.com is probably different for you specific to your school which doesnt matter)\nThen the page it leads to will have your secret and key\nFor the Next part use the command '+key' in this direct message, in order to input your key from the webisite```")
                 await message.author.send(embed = initEmbed(discord))
-                #print()
             else:
+                #sends a message to the discord channel if a row with the same server id exists, or if someone else called the init command
                 await message.channel.send(message.author.mention + "Someone has Already Called This Command")
-                #print()
         elif(args[0] == "+secret"):
+            #adds the 'secret' api key to the table
             if(message.guild == None):
+                #checks if the user is typing in the direct message the init embed was sent in
                 userdb = database().checkuserInDb(message.author.id)
-                #profile = database().getGuildProfile2(message.author.id)
                 if(userdb == None and database().getGuildProfile2(message.author.id)['key'] != None):
+                    #checks if the init command has been sent yet
                     await message.channel.send("You Have Not used '+init' yet")
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == True and database().getGuildProfile2(message.author.id)['key'] != None):
+                    #checks if the key and secret has been entered before in another discord server (or in another row in the table)
                     await message.channel.send("Your Secret and Key is already being used in another server. Please Have Someone else With the same class/classes set up the Bot\nIf You Believe this is a mistake and your key is being used without your permission use '+help' for more info on how to reset your key and secret")
                     database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])  
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == False and database().getGuildProfile2(message.author.id)['secret'] == None and database().getGuildProfile2(message.author.id)['key'] != None):
+                    #adds the secret to the table, checks to see if secret is valid as well
                     try:
                         database().addSecret(args[1], message.author.id)
                         try:
@@ -72,13 +79,13 @@ class MyClient(discord.Client):
                                 database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])
                                 await message.channel.send("Invalid Secret or Key: Please use the command '+init' in your server again")
                             else:
-                                tempusercode = sortUser(schoology(userkey,userSecret)) #sets the new usercode
+                                #if secret has been successfully added then the schoology user id is added to the table tow as well
+                                tempusercode = sortUser(schoology(userkey,userSecret))
                                 database().addUsercode_id(tempusercode, userGuildID)
                                 await message.author.send("Succesful you can now use the commands in your server\nUse '+help' too see available commands")
                         except:
                             database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])
                             await message.channel.send("Invalid Secret or Key: Please use the command '+init' in your server again")
-                            #print()
                     except:
                         await message.channel.send("invalid secret entry")
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == False and database().getGuildProfile2(message.author.id)['secret'] != None and database().getGuildProfile2(message.author.id)['key'] != None):
@@ -88,9 +95,9 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send("Please only use this command in direct messages" )
         elif(args[0] == "+key"):
+            #adds the 'key' api key to the table if it is valid, is ran before +secret
             if(message.guild == None):
                 userdb = database().checkuserInDb(message.author.id)
-                #database().getGuildProfile2(message.author.id)
                 if(userdb == None):
                     await message.channel.send("You Have Not used '+init' yet")
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == True):
@@ -98,6 +105,7 @@ class MyClient(discord.Client):
                     database().deleteRow(database().getGuildProfile2(message.author.id)['guild'])  
                 elif(userdb != None and database().getGuildProfile2(message.author.id)['init'] == False and database().getGuildProfile2(message.author.id)['key'] == None):
                     try:
+                        #adds the key to the row in the table
                         database().addKey(args[1], message.author.id)
                         await message.channel.send("Succesful Key add\n\nPlease use the command '+secret (enter secret here)' to add your Secret'")
                     except:
@@ -107,6 +115,7 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send("Please only use this command in direct messages" )
         elif(args[0] == "+reset"):
+            #deletes the row in the table, and allows the user to user the +init command again
             if(message.guild != None):
                 if(database().checkguildInDb(message.guild.id) == None):
                     await message.channel.send("Bot has not been initialized in this server yet")
@@ -114,6 +123,7 @@ class MyClient(discord.Client):
                     database().deleteRow(message.guild.id)
                     await message.channel.send("Completed Rest run '+init' again")
         elif(args[0] == "+today"):
+            #checks for all assignments due today for the selected class and sends an embeded message of the assignment with a decription
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -127,13 +137,13 @@ class MyClient(discord.Client):
                     usersecret = profile['secret']
                     classcode = profile['class_code']
                     try:
+                        #looks through all assignments for the course and returns the assignments due today
                         assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
-                        cdate = getCurrentDate(False)
+                        cdate = getCurrentDate(False) #if false, then the date the functions sort through is today
                         assignmentDueList = checkDate(assignmentDict, userkey, usersecret, cdate, classcode)
                         if assignmentDueList != []:
-                            print("bro what are you doing")
-                            print(assignmentDueList)
                             for i in assignmentDueList:
+                                #sends an embed message for every assignment due today
                                 temp = assignmentDict[i]
                                 await message.channel.send(embed = sendEmbed(discord,i,temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                         else:
@@ -143,6 +153,7 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+nextday"):
+            #checks for all assignments due tomorrow and sends the same embed message as before the with assignment info
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -154,12 +165,12 @@ class MyClient(discord.Client):
                     userkey = profile['key']
                     usersecret = profile['secret']
                     classcode = profile['class_code']
-                    #assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                     try:
                         assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
-                        cdate = getCurrentDate(True)#for next date this just has to be true
+                        cdate = getCurrentDate(True) #if true, then the date the functions sort through is tomorrow
                         assignmentDueList = checkDate(assignmentDict, userkey, usersecret, cdate, classcode)
                         for i in assignmentDueList:
+                            #sends an embed message for every assignment due tomorrow
                             temp = assignmentDict[i]
                             await message.channel.send(embed = sendEmbed(discord,i,temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                     except KeyError:
@@ -167,6 +178,7 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+thisweek"):
+            #checks for all assignments due the following seven days (including today) for the selected class
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -182,7 +194,7 @@ class MyClient(discord.Client):
                     try:
                         assignmentDict = sortAssignments(schoology(userkey,usersecret),classcode)
                         cdate = getCurrentDate(False)
-                        week = getWeek()
+                        week = getWeek() #a list of the seven days the command is based off of
                         for i in range(len(week)):
                             dayof = week[i]
                             assignmentDueList = checkDate(assignmentDict, userkey, usersecret, dayof, classcode)
@@ -197,11 +209,7 @@ class MyClient(discord.Client):
             else:
                 await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+classes"):
-            """
-            classesDict = sortClasses(schoology(key, secret), userscode)
-            classesList = list(classesDict.keys())
-            await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
-            """
+            #shows a list of all the user's classes
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -209,19 +217,18 @@ class MyClient(discord.Client):
                 elif(userDb != None and database().getGuildProfile(message.guild.id)['init'] == False):
                     await message.channel.send("Please finsih setup with '+init' command")
                 else:
+                    #sorts through the user's classes and returns an embed message with the list of classes
                     profile = database().getGuildProfile(message.guild.id)
                     userkey = profile['key']
                     usersecret = profile['secret']
                     usercode = str(profile['user_code'])
                     classesDict = sortClasses(schoology(userkey, usersecret), usercode)
-                    #print(classesDict)
                     classesList = list(classesDict.values())
-                    #classesids = list(classesDict.keys())
-                    #print(classesList)
                     await message.channel.send(embed = sendClassEmbed(discord, message.author.display_name, message.author.avatar_url, classesList[0], classesList[1], classesList[2], classesList[3], classesList[4], classesList[5], classesList[6]))
             else:
                 await message.channel.send("Please use this command in your Server")
         elif(args[0] == "+choose"):
+            #chooses the class that the bot reminds assignments for, should ideally be ran after +classes so the user knows which number correlates to which class
             if(message.guild != None):
                 userDb = database().checkguildInDb(message.guild.id)
                 if(userDb == None):
@@ -235,8 +242,9 @@ class MyClient(discord.Client):
                     usercode = str(profile['user_code'])
                     classChosenList = sortChosenClass(args[1],userkey,usersecret,usercode)
                     if classChosenList == None:
-                        await message.channel.send("your dumb af")
+                        await message.channel.send("Please choose a class within the list, it really isn't that hard.")
                     else:
+                        #adds the class code to the table, to change it just run the +choose command again
                         classcode = classChosenList[0]
                         usercode = classChosenList[1]
                         database().addClasscode(classcode, message.guild.id)
@@ -280,7 +288,6 @@ def helpEmbed(disc):
     embed.add_field(name="+secret", value="Only used in direct messages with bot.", inline=False)
     embed.add_field(name="+classes", value="Displays the list of classes you can see updates for.\n------------------------------------------------------------", inline=False)
     embed.add_field(name="General Commands:", value = ":gem:", inline=False)
-    #embed.set_image(url="https://cdn.discordapp.com/attachments/461448421320949764/512005978108067850/image0.gif", inline =True)
     embed.add_field(name="+choose (#1-7)", value="Choose the number that corresponds with the class you would like to view. :warning: Note: *+classes should be ran first to see which class is what number.*", inline=False)
     embed.add_field(name="+today", value="Shows all assignments due today for the class you have selected.", inline=False)
     embed.add_field(name="+nextday", value="Shows all assignments due tomorrow for the class you have selected.", inline=False)
@@ -311,7 +318,7 @@ def initEmbed(disc):
     return embed
     
 def getCurrentDate(tomorrow):
-    #gets the current date
+    #gets the current date if tomorrow = False, gets the next day if tomorrow = True
     pst = pytz.timezone('America/Los_Angeles')
     tempDate = datetime.now(pst)
     tempLeapyear = tempDate.year % 4
@@ -348,6 +355,7 @@ def convertTime(milTime):
     return standardTime
 
 def sortAssignments(school, classcode):
+    #loops through all assignments and assigns the tite and date to a dictionary where the keys are the titles and the values are the date, points, dassignment description, and assignment type
     sc = school
     starter = 0
     limiter = 20
@@ -356,13 +364,13 @@ def sortAssignments(school, classcode):
     scgetassignments = scgetcourses['assignment']
     tempDict = {}
     for i in scgetassignments:
-        #loops through all assignments and assigns the tite and date to a dictionary where the keys are the dates and the values are the titles
         assignmentDueDateandTime = i['due'].split()
         assignmentDueDateandTime[1] = convertTime(assignmentDueDateandTime)
         tempDict[i['title']] = [assignmentDueDateandTime[0], assignmentDueDateandTime[1],i['max_points'],i['description'],i['type']]
         assignmentCounter += 1
         if(assignmentCounter == 20):
-            #resets the limit and calls the getassignments module again to get all assignments
+            #resets the limit and calls the getassignments module again to get all assignments 
+            #schoology puts a limit on how much you can call from the site
             assignmentCounter = 0
             starter += 20
             limiter += 20
@@ -378,13 +386,7 @@ def sortClasses(school, userscode):
     scgetuserinfo = sc.getusercourses(userscode)
     scgetallcourses = scgetuserinfo['section']
     tempDict = {}
-    tempListNames = []
-    tempListIds = []
     for i in scgetallcourses:
-        #print(i)
-        #This would append to the two lists
-        tempListNames.append(i['course_title'])
-        tempListIds.append(i['id'])
         tempDict[i['id']] = i['course_title']
     return tempDict
 
@@ -429,7 +431,7 @@ def sortChosenClass(num,key,secret,usercode):
     return [classchoiceCode, classchoiceName]
 
 def getWeek():
-    #assignmentDict = sortAssignments(schoology(key,secret),classcode)
+    #returns a list of the days of the following week
     weekList = []
     pst = pytz.timezone('America/Los_Angeles')
     cdate = datetime.now(pst)
@@ -440,6 +442,7 @@ def getWeek():
     return weekList
 
 def checkDate(dict, key, secret, date, classc):
+    #sorts through the dates of the assignment and returns a list of the assignments that are due regardless if the date is the same
     times = list(sortAssignments(schoology(key, secret),classc).values())
     names = list(sortAssignments(schoology(key, secret),classc).keys())
     listofdue = []
@@ -449,17 +452,5 @@ def checkDate(dict, key, secret, date, classc):
             listofdue.append(names[i])
     return listofdue
 
-#userList = sortUser(schoology(key,secret))
-#classchoice = sortChosenClass(2)
-#print(classchoice)
-#print(userList)
-#classesDict = sortClasses(schoology(key, secret), userscode)
-#assignmentDict = sortAssignments(schoology(key,secret),classcode)
-#print(classesDict)
-#print(assignmentDict)
-#week = getWeek()
-#print(week)
-#datechecker = checkDate(assignmentDict, key, secret, '2021-01-20')
-#print(datechecker)
 client = MyClient()
 client.run(os.environ['token'])
