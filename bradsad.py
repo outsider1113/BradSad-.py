@@ -13,8 +13,8 @@ userChannels = {}
 userGuild = ""
 keyentered = False
 secretentered = False
-tempuserkey = " "
-tempusersecret = " "
+tempuserkey = ""
+tempusersecret = ""
 tempusercode = ""
 initializing = False
 try:
@@ -147,7 +147,7 @@ class MyClient(discord.Client):
                                 temp = assignmentDict[i]
                                 await message.channel.send(embed = sendEmbed(discord,i,temp[3],cdate,temp[4], temp[2], temp[1], message.author.display_name, message.author.avatar_url))
                         else:
-                            await message.channel.send(message.author.mention + " There are assignments due today")
+                            await message.channel.send(message.author.mention + " There are no assignments due today")
                     except KeyError:
                         await message.channel.send(message.author.mention + " There are no assignments due today")
             else:
